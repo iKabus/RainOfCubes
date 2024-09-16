@@ -1,46 +1,61 @@
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private Explosion _destruction;
     [SerializeField] private Cube _cube;
+    [SerializeField] private int _spawnAmount = 20;
+    [SerializeField] private float _repeatRate = 1f;
+    [SerializeField] private int _poolCapacity = 5;
+    [SerializeField] private int _poolMaxSize = 5;
 
-    private void OnEnable()
+    private readonly float _minCoordinateValue = -5f;
+    private readonly float _maxCoordinateValue = 5f;
+
+    private readonly Color _defaultColor = new(0, 0, 0);
+
+    private ObjectPool<Cube> _pool;
+    
+    private void Awake()
     {
-        _cube.Clicked += Clicked;
+        _pool = new ObjectPool<Cube>(
+            createFunc: () => Instantiate(_cube),
+            actionOnGet: cube => cube.gameObject.SetActive(true),
+            actionOnRelease: cube => cube.gameObject.SetActive(false),
+            actionOnDestroy: cube => Destroy(cube.gameObject),
+            collectionCheck: true,
+            defaultCapacity: _poolCapacity,
+            maxSize: _poolMaxSize);
     }
 
-    private void OnDisable()
+    private void Start()
     {
-        _cube.Clicked -= Clicked;
+        InvokeRepeating(nameof(Spawn), 0.0f, _repeatRate);
     }
 
-    private void Clicked()
+    private void Spawn()
     {
-        int minLimit = 2;
-        int maxLimit = 7;
-        int cubeNumber = Random.Range(minLimit, maxLimit);
-
-        if (_cube.CanSplit())
+        for (int i = 0; i < _spawnAmount; i++)
         {
-            for (int i = 0; i < cubeNumber; i++)
-            {
-                Create();
-            }
+            var cube = _pool.Get();
+            cube.transform.position = GetPosition();
+            cube.SetColor(_defaultColor);
+            cube.Init(RemoveToPool);
         }
-        else
-        {
-            _destruction.Increase(_cube.CurrentExpolosionParametr);
-            _destruction.Explode();
-        }
-
-        Destroy(_cube.gameObject);
     }
 
-    private void Create()
+    private Vector3 GetPosition()
     {
-        Cube cube = Instantiate(_cube);
+        const float coordinateY = 10;
 
-        cube.Initialize(_cube.CurrentChance, _cube.CurrentExpolosionParametr);
+        float coordinateX = Random.Range(_minCoordinateValue, _maxCoordinateValue);
+        float coordinateZ = Random.Range(_minCoordinateValue, _maxCoordinateValue);
+
+        return new Vector3(coordinateX, coordinateY, coordinateZ);
+    }
+
+    private void RemoveToPool(Cube cube)
+    {
+        _pool.Release(cube);
     }
 }

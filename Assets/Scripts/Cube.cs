@@ -1,60 +1,58 @@
 using System;
 using UnityEngine;
 
+[RequireComponent(typeof(Renderer))]
 public class Cube : MonoBehaviour
 {
-    public event Action Clicked;
+    private bool _isContact = true;
 
-    private float _divider = 2f;
+    private int _minLifetime = 2;
+    private int _maxLifeTime = 6;
 
-    private float _minChanceSplit = 0f;
-    private float _maxChanceSplit = 100f;
+    private Renderer _renderer;
 
-    public float CurrentChance { get; private set; } = 100f;
-    public float CurrentExpolosionParametr { get; private set; } = 1f;
+    private Action<Cube> _contact;
 
-    public bool CanSplit()
+    public void Init(Action<Cube> contact)
     {
-        float chance = UnityEngine.Random.Range(_minChanceSplit, _maxChanceSplit);
-
-        return CurrentChance >= chance;
+        _contact = contact;
     }
 
-    public void Initialize(float parentChance, float parentExplosionParametr)
+    public void SetColor(Color color)
     {
-        SetChance(parentChance);
-        SetExplosionParametr(parentExplosionParametr);
-        ChangeColor();
-        ChangeScale();
+        _renderer.material.color = color;
     }
 
-    private void SetChance(float parentChance)
+    private Color CreateRandomColor => UnityEngine.Random.ColorHSV();
+
+    private void Awake()
     {
-        CurrentChance = parentChance / _divider;
+        _renderer = GetComponent<Renderer>();
     }
 
-    private void SetExplosionParametr(float parentExplosionParametr)
+    private void OnCollisionEnter(Collision collision)
     {
-        CurrentExpolosionParametr = parentExplosionParametr * _divider;
-    }
-
-    private void ChangeColor()
-    {
-        if (TryGetComponent<Renderer>(out Renderer component))
+        if (collision.gameObject.TryGetComponent(out Ground ground))
         {
-            component.material.color = UnityEngine.Random.ColorHSV();
+            if (_isContact)
+            {
+                _renderer.material.color = CreateRandomColor;
+
+                _isContact = false;
+            }
+            else
+            {
+                return;
+            }
+
+            Invoke(nameof(RemoveToPool), UnityEngine.Random.Range(_minLifetime, _maxLifeTime));
         }
     }
 
-    private void ChangeScale()
+    private void RemoveToPool()
     {
-        int scaleChange = 2;
+        _isContact = true;
 
-        transform.localScale /= scaleChange;
-    }
-
-    private void OnMouseUpAsButton()
-    {
-        Clicked?.Invoke();
+        _contact(this);
     }
 }
