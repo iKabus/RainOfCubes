@@ -3,7 +3,7 @@ using UnityEngine.Pool;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private Cube _cube;
+    [SerializeField] private Cube _prefabCube;
     [SerializeField] private int _spawnAmount = 20;
     [SerializeField] private float _repeatRate = 1f;
     [SerializeField] private int _poolCapacity = 5;
@@ -19,7 +19,7 @@ public class Spawner : MonoBehaviour
     private void Awake()
     {
         _pool = new ObjectPool<Cube>(
-            createFunc: () => Instantiate(_cube),
+            createFunc: () => Instantiate(_prefabCube),
             actionOnGet: cube => cube.gameObject.SetActive(true),
             actionOnRelease: cube => cube.gameObject.SetActive(false),
             actionOnDestroy: cube => Destroy(cube.gameObject),
@@ -38,9 +38,9 @@ public class Spawner : MonoBehaviour
         for (int i = 0; i < _spawnAmount; i++)
         {
             var cube = _pool.Get();
-            cube.transform.position = GetPosition();
-            cube.SetColor(_defaultColor);
             cube.Init(RemoveToPool);
+            cube.SetColor(_defaultColor);
+            cube.transform.position = GetPosition();
         }
     }
 

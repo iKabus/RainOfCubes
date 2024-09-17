@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Renderer))]
 public class Cube : MonoBehaviour
 {
-    private bool _isContact = true;
+    public bool IsContact { get; private set; } = true;
 
     private int _minLifetime = 2;
     private int _maxLifeTime = 6;
@@ -13,8 +13,28 @@ public class Cube : MonoBehaviour
 
     private Action<Cube> _contact;
 
+    public void Contact()
+    {
+        IsContact = !IsContact;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.TryGetComponent(out Ground ground))
+        {
+            if (IsContact == false)
+            {
+                return;
+            }
+            
+            Invoke(nameof(RemoveToPool), UnityEngine.Random.Range(_minLifetime, _maxLifeTime));
+        }
+    }
+
     public void Init(Action<Cube> contact)
     {
+        _renderer = GetComponent<Renderer>();
+
         _contact = contact;
     }
 
@@ -22,36 +42,10 @@ public class Cube : MonoBehaviour
     {
         _renderer.material.color = color;
     }
-
-    private Color CreateRandomColor => UnityEngine.Random.ColorHSV();
-
-    private void Awake()
-    {
-        _renderer = GetComponent<Renderer>();
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.TryGetComponent(out Ground ground))
-        {
-            if (_isContact)
-            {
-                _renderer.material.color = CreateRandomColor;
-
-                _isContact = false;
-            }
-            else
-            {
-                return;
-            }
-
-            Invoke(nameof(RemoveToPool), UnityEngine.Random.Range(_minLifetime, _maxLifeTime));
-        }
-    }
-
+ 
     private void RemoveToPool()
     {
-        _isContact = true;
+        IsContact = true;
 
         _contact(this);
     }

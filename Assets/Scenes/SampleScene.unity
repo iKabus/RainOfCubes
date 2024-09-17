@@ -367,7 +367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1126f54c48d60a48a12d38f5904dfc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cube: {fileID: 1811752908913300606, guid: f3b13d9cba2843146b94402ea6cda2c4, type: 3}
+  _prefabCube: {fileID: 1811752908913300606, guid: f3b13d9cba2843146b94402ea6cda2c4, type: 3}
   _spawnAmount: 1
   _repeatRate: 1
   _poolCapacity: 5
