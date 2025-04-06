@@ -17,7 +17,7 @@ public class Cube : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.TryGetComponent(out Ground ground) && !_isScheduledForRemoval)
+        if (collision.gameObject.TryGetComponent(out Ground ground) && _isScheduledForRemoval == false)
         {
             ScheduleRemoval();
         }
@@ -28,23 +28,26 @@ public class Cube : MonoBehaviour
         _isScheduledForRemoval = true;
 
         float delay = UnityEngine.Random.Range(_minLifetime, _maxLifeTime);
-        
+
         Invoke(nameof(ReturnToPool), delay);
     }
 
     private void ReturnToPool()
     {
-        if (!_isScheduledForRemoval) return;
+        if (_isScheduledForRemoval == false)
+        {
+            return;
+        }
 
         _isScheduledForRemoval = false;
-        
+
         _returnToPool?.Invoke(this);
     }
 
     private void OnDisable()
     {
         CancelInvoke(nameof(ReturnToPool));
-        
+
         _isScheduledForRemoval = false;
     }
 }

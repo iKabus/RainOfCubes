@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
-public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
+public abstract class Spawner<T> : MonoBehaviour, ISpawnerStats where T : MonoBehaviour
 {
     [SerializeField] protected T _prefab;
     [SerializeField] protected int _spawnAmount = 20;
@@ -13,6 +13,7 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     protected readonly float _maxCoordinateValue = 5f;
 
     protected ObjectPool<T> _pool;
+
     protected int _totalSpawned;
     protected int _totalCreated;
 

@@ -2,12 +2,11 @@ using UnityEngine;
 
 public class CubeSpawner : Spawner<Cube>
 {
-    private BombSpawner _bombSpawner;
+    [SerializeField] private BombSpawner _bombSpawner;
 
     protected override void Awake()
     {
         base.Awake();
-        _bombSpawner = FindFirstObjectByType<BombSpawner>();
     }
 
     private void Start()
@@ -36,9 +35,6 @@ public class CubeSpawner : Spawner<Cube>
 
     private void SpawnBomb(Vector3 position)
     {
-        if (_bombSpawner != null)
-        {
-            _bombSpawner.SpawnAt(position);
-        }
+        _bombSpawner.SpawnAt(position);
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Renderer), typeof(Rigidbody))]
 public class Bomb : MonoBehaviour
@@ -12,7 +13,12 @@ public class Bomb : MonoBehaviour
     private Material _material;
     private Color _initialColor;
     private float _fadeTime;
-    private float _currentAlpha = 1f;
+    private BombSpawner _spawner;
+
+    public void Initialize(BombSpawner spawner)
+    {
+        _spawner = spawner;
+    }
 
     private void Awake()
     {
@@ -29,18 +35,26 @@ public class Bomb : MonoBehaviour
         _material.color = _initialColor;
 
         _fadeTime = Random.Range(_minFadeTime, _maxFadeTime);
+
+        StartCoroutine(FadeAndExplode());
     }
 
-    private void Update()
+    private IEnumerator FadeAndExplode()
     {
-        _currentAlpha -= Time.deltaTime / _fadeTime;
-        _material.color = new Color(_initialColor.r, _initialColor.g, _initialColor.b, _currentAlpha);
+        float elapsedTime = 0f;
 
-        if (_currentAlpha <= 0f)
+        while (elapsedTime < _fadeTime)
         {
-            Explode();
-            Destroy(gameObject);
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / _fadeTime;
+            float currentAlpha = Mathf.Lerp(1f, 0f, progress);
+            _material.color = new Color(_initialColor.r, _initialColor.g, _initialColor.b, currentAlpha);
+            yield return null;
         }
+
+        Explode();
+        
+        _spawner.ReleaseBomb(this);
     }
 
     private void Explode()
@@ -50,7 +64,7 @@ public class Bomb : MonoBehaviour
         foreach (Collider hit in colliders)
         {
             Rigidbody riginbody = hit.GetComponent<Rigidbody>();
-            
+
             if (riginbody != null)
             {
                 riginbody.AddExplosionForce(_explosionForce, transform.position, _explosionRadius);
