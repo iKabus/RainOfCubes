@@ -1,52 +1,50 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Renderer))]
 public class Cube : MonoBehaviour
 {
-    public bool IsContact { get; private set; } = true;
+    [SerializeField] private int _minLifetime = 2;
+    [SerializeField] private int _maxLifeTime = 6;
 
-    private int _minLifetime = 2;
-    private int _maxLifeTime = 6;
+    private Action<Cube> _returnToPool;
 
-    private Renderer _renderer;
+    private bool _isScheduledForRemoval = false;
 
-    private Action<Cube> _contact;
-
-    public void Contact()
+    public void Init(Action<Cube> returnAction)
     {
-        IsContact = !IsContact;
+        _returnToPool = returnAction;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.TryGetComponent(out Ground ground))
+        if (collision.gameObject.TryGetComponent(out Ground ground) && !_isScheduledForRemoval)
         {
-            if (IsContact == false)
-            {
-                return;
-            }
-            
-            Invoke(nameof(RemoveToPool), UnityEngine.Random.Range(_minLifetime, _maxLifeTime));
+            ScheduleRemoval();
         }
     }
 
-    public void Init(Action<Cube> contact)
+    private void ScheduleRemoval()
     {
-        _renderer = GetComponent<Renderer>();
+        _isScheduledForRemoval = true;
 
-        _contact = contact;
+        float delay = UnityEngine.Random.Range(_minLifetime, _maxLifeTime);
+        
+        Invoke(nameof(ReturnToPool), delay);
     }
 
-    public void SetColor(Color color)
+    private void ReturnToPool()
     {
-        _renderer.material.color = color;
-    }
- 
-    private void RemoveToPool()
-    {
-        IsContact = true;
+        if (!_isScheduledForRemoval) return;
 
-        _contact(this);
+        _isScheduledForRemoval = false;
+        
+        _returnToPool?.Invoke(this);
+    }
+
+    private void OnDisable()
+    {
+        CancelInvoke(nameof(ReturnToPool));
+        
+        _isScheduledForRemoval = false;
     }
 }
