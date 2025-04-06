@@ -1,13 +1,10 @@
+using System;
 using UnityEngine;
 
 public class CubeSpawner : Spawner<Cube>
 {
-    [SerializeField] private BombSpawner _bombSpawner;
-
-    protected override void Awake()
-    {
-        base.Awake();
-    }
+    
+    public static event Action<Vector3> CubeRemoved;
 
     private void Start()
     {
@@ -29,12 +26,8 @@ public class CubeSpawner : Spawner<Cube>
         if (cube.gameObject.activeInHierarchy)
         {
             _pool.Release(cube);
-            SpawnBomb(cube.transform.position);
+            
+            CubeRemoved?.Invoke(cube.transform.position);
         }
-    }
-
-    private void SpawnBomb(Vector3 position)
-    {
-        _bombSpawner.SpawnAt(position);
     }
 }

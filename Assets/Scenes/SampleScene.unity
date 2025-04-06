@@ -1230,7 +1230,6 @@ MonoBehaviour:
   _repeatRate: 1
   _poolCapacity: 5
   _poolMaxSize: 5
-  _bombSpawner: {fileID: 1427452215}
 --- !u!4 &1824461292
 Transform:
   m_ObjectHideFlags: 0
